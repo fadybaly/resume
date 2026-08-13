@@ -40,13 +40,18 @@ coverletter:
 
 # Fail loudly if the Publications section came out empty. Guards the exact
 # silent failure described above.
+# Match full titles, not prefixes: a loose pattern silently over-counts as soon
+# as unrelated body text happens to start a line with the same word.
+PUBS := ^(AraBERT:|AraGPT2:|AraELECTRA:|State of the Art Models|Multi-Task Learning|Dynamic EEG compression)
+
 verify: resume
-	@n=$$(pdftotext -f 2 -l 3 resume.pdf - | grep -cE '^(Ara|State of|Multi|Dynamic)') ; \
-	if [ "$$n" -lt 6 ] ; then \
-		echo "ERROR: resume.pdf has $$n/6 publications -- the biber pass did not take." ; \
+	@n=$$(pdftotext -f 2 -l 3 resume.pdf - | grep -cE '$(PUBS)') ; \
+	if [ "$$n" -ne 6 ] ; then \
+		echo "ERROR: resume.pdf matched $$n publication titles, expected 6." ; \
+		echo "       If the biber pass did not take, the section is empty (n=0)." ; \
 		exit 1 ; \
 	fi ; \
-	echo "OK: resume.pdf has $$n/6 publications."
+	echo "OK: resume.pdf has 6/6 publications."
 
 # Install the bundled FontAwesome into the user font directory. Without it
 # xelatex fails: fontawesome.sty requests the family with no path, so the
