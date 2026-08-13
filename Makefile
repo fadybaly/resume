@@ -8,12 +8,20 @@
 # missing or stale, so a PDF left broken by a hand-run xelatex gets repaired
 # rather than being treated as up to date.
 #
-# Requires XeLaTeX (TeX Live) and FontAwesome installed system-wide; the
+# Requires LuaLaTeX (TeX Live) and FontAwesome installed system-wide; the
 # bundled copy is at fonts/FontAwesome.ttf, install it with `make install-fonts`.
 
 LATEXMK := latexmk
-# -pdfxe: build with xelatex. -bibtex: run biber/bibtex as needed.
-LMFLAGS := -pdfxe -bibtex -interaction=nonstopmode -halt-on-error
+# -pdflua: build with lualatex. -bibtex: run biber/bibtex as needed.
+#
+# LuaLaTeX rather than XeLaTeX on purpose. xdvipdfmx writes a broken ToUnicode
+# CMap for the Source Sans Pro subsets: every hyphen is reverse-mapped to U+2011
+# NON-BREAKING HYPHEN and the small-caps capital I to lowercase 'i'. The PDF
+# looks identical either way, but the extracted text an ATS reads comes out as
+# "Pre‑Trained" and "APPLiED SCiENTiST", so literal keyword matching fails.
+# LuaLaTeX emits correct ASCII. Keep the %!TEX TS-program lines in the .tex
+# files on lualatex too, or editors and Overleaf will reintroduce the defect.
+LMFLAGS := -pdflua -bibtex -interaction=nonstopmode -halt-on-error
 
 .PHONY: all resume cv coverletter verify install-fonts clean distclean
 
