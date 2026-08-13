@@ -1,0 +1,146 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+% Awesome CV LaTeX Template for CV/Resume
+%
+% This template has been downloaded from:
+% https://github.com/posquit0/Awesome-CV
+%
+% Author:
+% Claud D. Park <posquit0.bj@gmail.com>
+% http://www.posquit0.com
+%
+% Template license:
+% CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+%
+
+
+%-------------------------------------------------------------------------------
+% CONFIGURATIONS
+%-------------------------------------------------------------------------------
+% A4 paper size by default, use 'letterpaper' for US letter
+\documentclass[11pt, a4paper]{awesome-cv}
+
+% Configure page margins with geometry
+\geometry{left=1.4cm, top=.8cm, right=1.4cm, bottom=1.8cm, footskip=.5cm}
+
+% Specify the location of the included fonts
+\fontdir[fonts/]
+
+% Color for highlights
+% Awesome Colors: awesome-emerald, awesome-skyblue, awesome-red, awesome-pink, awesome-orange
+%                 awesome-nephritis, awesome-concrete, awesome-darknight
+\colorlet{awesome}{awesome-skyblue}
+% \colorlet{awesome}{awesome-pink}
+% Gray-scale colors
+% \definecolor{white}{HTML}{FFFFFF}
+% \definecolor{black}{HTML}{000000}
+% \definecolor{darkgray}{HTML}{333333}
+% \definecolor{gray}{HTML}{5D5D5D}
+% \definecolor{lightgray}{HTML}{999999}
+% % Basic colors
+% \definecolor{green}{HTML}{C2E15F}
+% \definecolor{orange}{HTML}{FDA333}
+% \definecolor{purple}{HTML}{D3A4F9}
+% \definecolor{red}{HTML}{FB4485}
+% \definecolor{blue}{HTML}{6CE0F1}
+% % Text colors
+% \definecolor{darktext}{HTML}{414141}
+% \colorlet{text}{darkgray}
+% \colorlet{graytext}{gray}
+% \colorlet{lighttext}{lightgray}
+% % Awesome colors
+% \definecolor{awesome-emerald}{HTML}{00A388}
+% \definecolor{awesome-skyblue}{HTML}{02689b}
+% \definecolor{awesome-red}{HTML}{DC3522}
+% \definecolor{awesome-pink}{HTML}{EF4089}
+% \definecolor{awesome-orange}{HTML}{FF6138}
+% \definecolor{awesome-nephritis}{HTML}{27AE60}
+% \definecolor{awesome-concrete}{HTML}{95A5A6}
+% \definecolor{awesome-darknight}{HTML}{131A28}
+% \colorlet{awesome}{awesome-red}
+
+% Uncomment if you would like to specify your own color
+% \definecolor{awesome}{HTML}{CA63A8}
+
+% Colors for text
+% Uncomment if you would like to specify your own color
+% \definecolor{darktext}{HTML}{414141}
+% \definecolor{text}{HTML}{333333}
+% \definecolor{graytext}{HTML}{5D5D5D}
+% \definecolor{lighttext}{HTML}{999999}
+
+% Set false if you don't want to highlight section with awesome color
+\setbool{acvSectionColorHighlight}{true}
+
+% If you would like to change the social information separator from a pipe (|) to something else
+\renewcommand{\acvHeaderSocialSep}{\quad\textbar\quad}
+
+
+%-------------------------------------------------------------------------------
+%	PERSONAL INFORMATION
+%	Comment any of the lines below if they are not required
+%-------------------------------------------------------------------------------
+% Available options: circle|rectangle,edge/noedge,left/right
+% \photo[rectangle,edge,right]{./examples/profile}
+\usepackage{tabularx}
+\usepackage{biblatex}
+
+\name{Fady}{Baly}
+\position{Applied Scientist}
+\address{Dubai, United Arab Emirates}
+
+\mobile{(+971) 58-994-8471}
+\email{baly.fady@gmail.com}
+% \homepage{www.posquit0.com}
+\github{fadybaly}
+\linkedin{fadybaly}
+% \gitlab{gitlab-id}
+% \stackoverflow{SO-id}{SO-name}
+% \twitter{@twit}
+% \skype{skype-id}
+% \reddit{reddit-id}
+% \medium{madium-id}
+% \googlescholar{googlescholar-id}{Fady Baly}
+%% \firstname and \lastname will be used
+\googlescholar{4zLsisQAAAAJ&hl=en}{Fady Baly}
+% \extrainfo{extra informations}
+
+\quote{``Be the change that you want to see in the world."}
+
+%-------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%-------------------------------------------------------------------------------
+\addbibresource{references.bib}
+
+%-------------------------------------------------------------------------------
+\begin{document}
+
+
+% Print the header with above personal informations
+% Give optional argument to change alignment(C: center, L: left, R: right)
+\makecvheader[C]
+
+% Print the footer with 3 arguments(<left>, <center>, <right>)
+% Leave any of these blank if they are not needed
+\makecvfooter
+  {\today}
+  {Fady Baly~~~·~~~Résumé}
+  {\thepage}
+
+
+%-------------------------------------------------------------------------------
+%	CV/RESUME CONTENT
+%	Each section is imported separately, open each file in turn to modify content
+%-------------------------------------------------------------------------------
+\input{resume/summary.tex}
+\input{resume/experience.tex}
+\input{resume/education.tex}
+\input{resume/publications.tex}
+\input{resume/honors.tex}
+\input{resume/projects.tex}
+\input{resume/skills.tex}
+\input{resume/extracurricular.tex}
+
+
+%-------------------------------------------------------------------------------
+\end{document}
