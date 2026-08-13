@@ -1,39 +1,44 @@
 # Awesome-CV build
 #
-# The biber pass is not optional: resume/publications.tex wraps the
-# bibliography in a refsection, so a bare `xelatex resume.tex` silently drops
-# the whole Publications section. xelatex then runs twice more so the
-# bibliography and page references settle.
+# Driven by latexmk, which reads resume.bcf and runs biber itself, then reruns
+# xelatex until references settle. This matters: resume/publications.tex wraps
+# the bibliography in a refsection, and a bare `xelatex resume.tex` produces a
+# Publications section containing the heading and nothing else -- no error, no
+# warning that stops the build. latexmk also rebuilds whenever its own state is
+# missing or stale, so a PDF left broken by a hand-run xelatex gets repaired
+# rather than being treated as up to date.
 #
 # Requires XeLaTeX (TeX Live) and FontAwesome installed system-wide; the
 # bundled copy is at fonts/FontAwesome.ttf, install it with `make install-fonts`.
 
-LATEX  := xelatex
-BIBER  := biber
-LFLAGS := -interaction=nonstopmode -halt-on-error
+LATEXMK := latexmk
+# -pdfxe: build with xelatex. -bibtex: run biber/bibtex as needed.
+LMFLAGS := -pdfxe -bibtex -interaction=nonstopmode -halt-on-error
 
-RESUME_DEPS := resume.tex references.bib awesome-cv.cls $(wildcard resume/*.tex)
-CV_DEPS     := cv.tex awesome-cv.cls $(wildcard cv/*.tex)
-
-.PHONY: all resume cv coverletter install-fonts clean distclean
+.PHONY: all resume cv coverletter verify install-fonts clean distclean
 
 all: resume
 
-resume: resume.pdf
-cv: cv.pdf
-coverletter: coverletter.pdf
+# Phony on purpose: latexmk decides what work is needed, and it is the only
+# thing here that knows whether the bibliography is current.
+resume:
+	$(LATEXMK) $(LMFLAGS) resume.tex
 
-resume.pdf: $(RESUME_DEPS)
-	$(LATEX) $(LFLAGS) resume.tex
-	$(BIBER) resume
-	$(LATEX) $(LFLAGS) resume.tex
-	$(LATEX) $(LFLAGS) resume.tex
+cv:
+	$(LATEXMK) $(LMFLAGS) cv.tex
 
-cv.pdf: $(CV_DEPS)
-	$(LATEX) $(LFLAGS) cv.tex
+coverletter:
+	$(LATEXMK) $(LMFLAGS) coverletter.tex
 
-coverletter.pdf: coverletter.tex awesome-cv.cls
-	$(LATEX) $(LFLAGS) coverletter.tex
+# Fail loudly if the Publications section came out empty. Guards the exact
+# silent failure described above.
+verify: resume
+	@n=$$(pdftotext -f 2 -l 3 resume.pdf - | grep -cE '^(Ara|State of|Multi|Dynamic)') ; \
+	if [ "$$n" -lt 6 ] ; then \
+		echo "ERROR: resume.pdf has $$n/6 publications -- the biber pass did not take." ; \
+		exit 1 ; \
+	fi ; \
+	echo "OK: resume.pdf has $$n/6 publications."
 
 # Install the bundled FontAwesome into the user font directory. Without it
 # xelatex fails: fontawesome.sty requests the family with no path, so the
@@ -42,7 +47,9 @@ install-fonts:
 	cp fonts/FontAwesome.ttf $(HOME)/Library/Fonts/
 
 clean:
-	rm -f *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.synctex.gz missfont.log
+	$(LATEXMK) -c
+	rm -f missfont.log
 
-distclean: clean
-	rm -f resume.pdf cv.pdf coverletter.pdf
+distclean:
+	$(LATEXMK) -C
+	rm -f missfont.log
