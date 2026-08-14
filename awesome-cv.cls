@@ -694,6 +694,10 @@
 \newenvironment{cvitems}{%
   \vspace{-4.0mm}
   \begin{justify}
+  % ragged2e's \justifying sets \spaceskip to zero, which strips literal spaces
+  % from the extracted text layer. Restore it here or bullet text extracts as
+  % run-together words in pypdf and pdfplumber.
+  \spaceskip=0.34em plus 0.15em minus 0.01em\relax
   \begin{itemize}[leftmargin=2ex, nosep, noitemsep]
     \setlength{\parskip}{0pt}
     \renewcommand{\labelitemi}{\bullet}

@@ -126,6 +126,13 @@
 \addbibresource{references.bib}
 
 %-------------------------------------------------------------------------------
+% Force a real interword glue value. Without it the PDF contains no literal
+% space characters at all: word gaps are ~1.79pt of kerning, below the 3.0pt
+% threshold pypdf and pdfplumber use, so those extractors return
+% "MachineLearning" and "APPLIEDSCIENTIST". Must also be set inside cvitems in
+% awesome-cv.cls, because ragged2e's \justifying resets \spaceskip to zero.
+\spaceskip=0.34em plus 0.15em minus 0.01em
+
 \begin{document}
 
 
