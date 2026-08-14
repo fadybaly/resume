@@ -148,6 +148,13 @@
 \definecolor{awesome-darknight}{HTML}{131A28}
 \colorlet{awesome}{awesome-red}
 
+% Brand colors for the header social icons
+\definecolor{brand-phone}{HTML}{34A853}
+\definecolor{brand-email}{HTML}{EA4335}
+\definecolor{brand-github}{HTML}{181717}
+\definecolor{brand-linkedin}{HTML}{0A66C2}
+\definecolor{brand-scholar}{HTML}{4285F4}
+
 % Boolean value to switch section color highlighting
 \newbool{acvSectionColorHighlight}
 \setbool{acvSectionColorHighlight}{true}
@@ -297,6 +304,10 @@
 % Defines writer's Hugging Face profile or org (optional)
 % Usage: \huggingface{<huggingface-nick>}
 \newcommand*{\huggingface}[1]{\def\@huggingface{#1}}
+% Icon used for the Hugging Face entry. fontawesome 4.6.3 predates the brand,
+% so this defaults to a plain glyph; redefine it in the document preamble to
+% use the real U+1F917 hugging-face emoji via the `emoji' package.
+\providecommand*{\acvHuggingFaceIcon}{\faSmileO}
 
 % Defines writer's stackoverflow profile (optional)
 % Usage: \stackoverflow{<so userid>}{<so username>}
@@ -463,14 +474,14 @@
       \ifthenelse{\isundefined{\@mobile}}%
         {}%
         {%
-          \faMobile\acvHeaderIconSep\@mobile%
+          \textcolor{brand-phone}{\faMobile}\acvHeaderIconSep\@mobile%
           \setbool{isstart}{false}%
         }%
       \ifthenelse{\isundefined{\@email}}%
         {}%
         {%
           \ifbool{isstart}{\setbool{isstart}{false}}{\acvHeaderSocialSep}%
-          \href{mailto:\@email}{\faEnvelope\acvHeaderIconSep\@email}%
+          \href{mailto:\@email}{\textcolor{brand-email}{\faEnvelope}\acvHeaderIconSep\@email}%
         }%
       \ifthenelse{\isundefined{\@homepage}}%
         {}%
@@ -482,7 +493,7 @@
         {}%
         {%
           \ifbool{isstart}{\setbool{isstart}{false}}{\acvHeaderSocialSep}%
-          \href{https://github.com/\@github}{\faGithubSquare\acvHeaderIconSep github.com/\@github}%
+          \href{https://github.com/\@github}{\textcolor{brand-github}{\faGithubSquare}\acvHeaderIconSep github.com/\@github}%
         }%
       \ifthenelse{\isundefined{\@gitlab}}%
         {}%
@@ -500,7 +511,7 @@
         {}%
         {%
           \ifbool{isstart}{\setbool{isstart}{false}}{\acvHeaderSocialSep}%
-          \href{https://www.linkedin.com/in/\@linkedin}{\faLinkedinSquare\acvHeaderIconSep linkedin.com/in/\@linkedin}%
+          \href{https://www.linkedin.com/in/\@linkedin}{\textcolor{brand-linkedin}{\faLinkedinSquare}\acvHeaderIconSep linkedin.com/in/\@linkedin}%
         }%
       \ifthenelse{\isundefined{\@twitter}}%
         {}%
@@ -536,13 +547,13 @@
         {}%
         {%
           \ifbool{isstart}{\setbool{isstart}{false}}{\acvHeaderSocialSep}%
-          \href{https://scholar.google.com/citations?user=\@googlescholarid}{\faGraduationCap\acvHeaderIconSep\@googlescholarname}%
+          \href{https://scholar.google.com/citations?user=\@googlescholarid}{\textcolor{brand-scholar}{\faGraduationCap}\acvHeaderIconSep\@googlescholarname}%
         }%
       \ifthenelse{\isundefined{\@huggingface}}%
         {}%
         {%
           \ifbool{isstart}{\setbool{isstart}{false}}{\acvHeaderSocialSep}%
-          \mbox{\href{https://huggingface.co/\@huggingface}{\faSmileO\acvHeaderIconSep huggingface.co/\@huggingface}}%
+          \mbox{\href{https://huggingface.co/\@huggingface}{\acvHuggingFaceIcon\acvHeaderIconSep huggingface.co/\@huggingface}}%
         }%
       \ifthenelse{\isundefined{\@extrainfo}}%
         {}%

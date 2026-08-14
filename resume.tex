@@ -85,6 +85,18 @@
 \usepackage{tabularx}
 \usepackage{biblatex}
 
+% Real U+1F917 hugging-face emoji for the Hugging Face header entry.
+% Requires LuaLaTeX. Falls back to the class default (\faSmileO) if no colour
+% emoji font is present, so the build still works off macOS.
+\usepackage{emoji}
+\IfFontExistsTF{Apple Color Emoji}
+  {\setemojifont{Apple Color Emoji}%
+   \renewcommand*{\acvHuggingFaceIcon}{\raisebox{-0.15ex}{\resizebox{!}{1.5ex}{\emoji{hugging-face}}}}}
+  {\IfFontExistsTF{Noto Color Emoji}
+    {\setemojifont{Noto Color Emoji}%
+     \renewcommand*{\acvHuggingFaceIcon}{\raisebox{-0.15ex}{\resizebox{!}{1.5ex}{\emoji{hugging-face}}}}}
+    {}}
+
 \name{Fady}{Baly}
 \position{Applied Scientist}
 \address{Dubai, United Arab Emirates}
