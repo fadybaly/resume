@@ -4,6 +4,11 @@
 # Claude Code local settings
 .claude/settings.local.json
 
+# Built output. The .tex files are the source of truth; run `make` to rebuild.
+resume.pdf
+cv.pdf
+coverletter.pdf
+
 # LaTeX build artifacts
 *.aux
 *.bbl
