@@ -2,7 +2,10 @@
 %	SECTION TITLE
 %-------------------------------------------------------------------------------
 
-\cvsection{Extracurricular Activity}
+% "Talks" only: the two 2019 outreach entries that would have justified an
+% "& Additional Experience" half are commented out below. Restore that wording
+% if you uncomment them.
+\cvsection{Talks}
 
 %-------------------------------------------------------------------------------
 %	CONTENT
@@ -17,36 +20,43 @@
     {Oct. 2025} % Date(s)
     {
       \begin{cvitems} % Description(s) of experience/contributions/knowledge
-        \item {Presented \textit{AraBERT: an enabler for Arabic NLP embeddings} with Wissam Antoun (INRIA) at \textit{Do LLMs Subsume Arabic Language Tasks? Practitioners Rethinking Data, Knowledge, Context, and Culture Gaps}.}
+        % Conference subtitle trimmed; the full title is "Do LLMs Subsume Arabic Language
+        % Tasks? Practitioners Rethinking Data, Knowledge, Context, and Culture Gaps".
+        \item {Presented \textit{AraBERT: an enabler for Arabic NLP embeddings}\atsspace with Wissam Antoun (INRIA) at\atsspace \textit{Do LLMs Subsume Arabic Language Tasks?}}
         \item {Moderated the session on Computer Science and Electrical and Computer Engineering contributions to NLP.}
       \end{cvitems}
     }
 
 %---------------------------------------------------------
-  \cventry
-    {Instructor} % Affiliation/role
-    {TechBites} % Organization/group
-    {Beirut, Lebanon} % Location
-    {Jun. 2019 - Sept. 2019} % Date(s)
-    {
-      \begin{cvitems} % Description(s) of experience/contributions/knowledge
-        \item {Prepared and delivered workshops introducing Artificial Intelligence to a general audience: what it is, how and why it works, and how it can make everyday tasks easier.}
-        \item {Covered convolutional neural networks in depth, and how they are used to build image classifiers, face detection and recognition models, style transfer, and more.}
-      \end{cvitems}
-    }
+% The two 2019 outreach entries below are commented out, not deleted, for the
+% same reason as the Projects section in resume.tex: they are general-audience
+% talks from seven years ago and were the cheapest half-page to give up in
+% getting the resume back to two pages. The Oct. 2025 AUB entry above is kept
+% because it is recent and is the one that presents AraBERT directly.
+%   \cventry
+%     {Instructor} % Affiliation/role
+%     {TechBites} % Organization/group
+%     {Beirut, Lebanon} % Location
+%     {Jun. 2019 - Sept. 2019} % Date(s)
+%     {
+%       \begin{cvitems} % Description(s) of experience/contributions/knowledge
+%         \item {Prepared and delivered workshops introducing Artificial Intelligence to a general audience: what it is, how and why it works, and how it can make everyday tasks easier.}
+%         \item {Covered convolutional neural networks in depth, and how they are used to build image classifiers, face detection and recognition models, style transfer, and more.}
+%       \end{cvitems}
+%     }
 
 %---------------------------------------------------------
-  \cventry
-    {Presenter for <Bias in Big Data>} % Role
-    {Bread\&Net by Social Media Exchange (SMEX)} % Event
-    {Beirut, Lebanon} % Location
-    {Nov. 2019} % Date(s)
-    {
-      \begin{cvitems} % Description(s)
-        \item {Introduced the relationship between large corporations and big data.}
-        \item {Showed how using big data without scrutiny leads current artificial intelligence models to inherit the biases we produce online.}
-      \end{cvitems}
-    }
+%   \cventry
+%     {Presenter for <Bias in Big Data>} % Role
+%     {Bread\&Net by Social Media Exchange (SMEX)} % Event
+%     {Beirut, Lebanon} % Location
+%     {Nov. 2019} % Date(s)
+%     {
+%       \begin{cvitems} % Description(s)
+%         \item {Introduced the relationship between large corporations and big data.}
+%         \item {Showed how using big data without scrutiny leads current artificial intelligence models to inherit the biases we produce online.}
+%       \end{cvitems}
+%     }
 
 %---------------------------------------------------------
 %   \cventry
@@ -60,17 +70,12 @@
 %         \end{cvitems}
 %     }
 
-%---------------------------------------------------------
-
-  \cventry
-    {Personal Interests} % Job title
-    {Nonacademic activities} % Organization
-    {Aleppo, Syria} % Location
-    {} % Date(s)
-    {
-      \begin{cvitems} % Description(s) of tasks/responsibilities
-        \item {\textbf{Classical piano player:} performed several solo concerts in Syria}
-        \item {Member of the Conférence Internationale Catholique des Scoutes (CICS).}
-      \end{cvitems}
-    }
 \end{cventries}
+
+%---------------------------------------------------------
+% The personal-interests line used to live here, in its own empty \cventry
+% outside \end{cventries}. Two problems: the empty position/organization row
+% still consumed vertical space (it was the single line spilling onto page 3),
+% and with no heading between it and the entry above, it rendered as a stray
+% fourth bullet of the AUB talk. It now sits as the closing line of
+% resume/skills.tex, which uses the same empty-argument construct by design.

@@ -118,7 +118,10 @@
 \huggingface{aubmindlab}
 % \extrainfo{extra informations}
 
-\quote{``Be the change that you want to see in the world."}
+% Header quote intentionally disabled: the line below is the Awesome-CV
+% template's stock placeholder, and the saying is misattributed to Gandhi.
+% Left commented rather than deleted so it is trivial to restore.
+% \quote{``Be the change that you want to see in the world."}
 
 %-------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
@@ -126,12 +129,240 @@
 \addbibresource{references.bib}
 
 %-------------------------------------------------------------------------------
-% Force a real interword glue value. Without it the PDF contains no literal
-% space characters at all: word gaps are ~1.79pt of kerning, below the 3.0pt
-% threshold pypdf and pdfplumber use, so those extractors return
-% "MachineLearning" and "APPLIEDSCIENTIST". Must also be set inside cvitems in
-% awesome-cv.cls, because ragged2e's \justifying resets \spaceskip to zero.
+% ATS TEXT EXTRACTION: force a real interword glue value.
+%
+% Root cause of the "FadyBaly" / "WorkExperience" / "MachineLearning:" extraction
+% bug is twofold:
+%   1. \spaceskip is a dimension, so `0.34em' is resolved ONCE, against whatever
+%      font is current when the assignment runs (11pt here => ~3.84pt). Every
+%      larger run - the 32pt name, the 16pt section titles - then inherits that
+%      frozen, far-too-small gap, and pypdf/pdfplumber (3.0pt threshold, scaled
+%      by font size) glue the words together.
+%   2. ragged2e's \justifying, used by the class inside cvitems, re-zeroes
+%      \spaceskip on every \selectfont, so each \textbf / \textit run loses it.
+% The bare assignment below still covers material typeset before the hook is
+% installed; the selectfont hook re-evaluates 0.34em against the *current* font
+% after every font switch, which fixes both problems at once.
+%
+% The 3.2pt floor is load-bearing, not belt-and-braces. The two extractors
+% disagree about what a space is: pypdf scales its threshold by font size (so it
+% needs a gap proportional to the em, hence 0.34em), while pdfplumber compares
+% raw coordinates against a flat 3.0pt (so it needs an absolute minimum). A
+% purely em-relative value satisfies the first and fails the second on every run
+% set in a small font: at the 7.6pt used for the small-caps role lines, 0.34em is
+% 2.58pt, and pdfplumber returned "APPLIEDSCIENTIST", "MACHINELEARNINGENGINEER"
+% and "Dubai,UnitedArabEmirates" - i.e. it lost every job title in the document.
+% Floor and em value together clear both thresholds; measured with poppler,
+% pdfminer, pdfplumber and pypdf, all four now read those lines correctly.
+% Do not lower 3.2pt: justification may shrink a space by 0.01em (~0.09pt), and
+% the result must still land above pdfplumber's 3.0pt.
 \spaceskip=0.34em plus 0.15em minus 0.01em
+\AddToHook{selectfont}{\spaceskip=0.34em plus 0.15em minus 0.01em\relax
+  \ifdim\spaceskip<3.2pt \spaceskip=3.2pt plus 0.15em minus 0.01em\relax\fi}
+
+%-------------------------------------------------------------------------------
+% ATS TEXT EXTRACTION: a real space glyph for font-switch boundaries.
+%
+% The \spaceskip work above fixes gaps *within* one font run. It cannot fix a
+% gap that sits exactly on a font switch (\textbf{Label:} content, or a space
+% either side of a \textit{...} title), because LuaTeX closes the TJ array at
+% every font change and reopens the next run with an absolute Tm. There is then
+% no space character and no kern in the content stream at all - only two
+% positions - so each extractor has to *infer* the space by arithmetic.
+%
+% pypdf infers it as `jump >= half_a_space + its_own_estimate_of_the_run_width`
+% (pypdf/_text_extraction/__init__.py, crlf_space_check). That estimate is built
+% by summing per-glyph widths for a LuaTeX CID subset font, and the error
+% accumulates along the run, so whether the space survives depends on how long
+% the bold label is and which letters it contains - measured margins ran from
+% +1.5pt ("Security:") to -3.3pt ("Model Training & Evaluation:"), which is why
+% "Machine Learning:PyTorch" and "NLP software:NLTK" came out joined while
+% "Programming: Python" and "Security: OAuth" did not. Widening \spaceskip
+% cannot fix this: the previous attempts at 0.36em and 0.38em failed because the
+% error is in pypdf's width table, not in the gap.
+%
+% \char32 sidesteps the inference entirely by typesetting the font's actual
+% `space' glyph, so the character is really in the PDF text run and every
+% extractor simply reads it. The glyph is rigid and only 0.2em wide, so the
+% \hskip tops it up to the ~0.34em of the surrounding interword spaces and
+% restores the line-break opportunity and the stretch that justification needs.
+%
+% WHY THE GLYPH IS TAKEN FROM ITS OWN FONT FAMILY AND NOT FROM THE BODY FONT.
+% This is the load-bearing part; do not "simplify" it back to a bare \char32.
+%
+% pypdf turns a TJ array into text by walking the array and inserting a space
+% wherever a numeric element satisfies abs(n) >= font.space_width/2 * 0.95
+% (pypdf/_page.py, the `elif operator == b"TJ"' branch). Note abs(): a *negative*
+% kern counts exactly as much as a positive one. font.space_width is read from
+% the subset's own width table when the subset actually contains a space glyph,
+% and only falls back to a derived value (~508 for these Source Sans Pro
+% subsets) when it does not (pypdf/_font.py, _add_space_width).
+%
+% So typesetting \char32 in the body font is self-defeating: it pulls the real
+% space glyph into the body subset, pypdf then reads Source Sans Pro's true
+% space width of 200, and its threshold collapses from ~241 to ~95 units for
+% *every* run in that font. Ordinary pair kerns are larger than that - the L-T
+% kern in "NLTK" is 120 - so pypdf starts splitting words at their kerns. That
+% build extracted "NL TK", "ASP .NET", "AraBERT ," and "NLP ."; measured, not
+% predicted. It is a strictly worse failure than the one being fixed, because
+% NLTK and ASP.NET are keywords and the joins it repaired were not.
+%
+% Putting the glyph in a family used for nothing else keeps both properties: the
+% body subset never acquires a space glyph, so its threshold stays at ~241 and
+% its kerns stay invisible to pypdf, while the space itself is still a real
+% character in the content stream. The dedicated subset does get the low
+% threshold, but it contains one glyph and no kerns, so there is nothing there
+% to mis-split. Roboto-Light is chosen only because it ships in fonts/ and the
+% class leaves it unused (\headerfont takes Regular/Bold, \headerfontlight takes
+% Thin/Medium); the face is irrelevant, a space has no shape. Its space is
+% 0.248em rather than 0.2em, so the \hskip below is trimmed to match, keeping
+% the rendered gap at the same ~0.34em as before.
+%-------------------------------------------------------------------------------
+\newfontfamily\atsspacefont[Path=fonts/]{Roboto-Light}
+\newcommand*{\atsspace}{{\atsspacefont\char32}\hskip 0.09em plus 0.09em minus 0.01em\relax}
+
+%-------------------------------------------------------------------------------
+% ATS TEXT EXTRACTION: the same fix for the author lists in Publications.
+%
+% references.bib bolds the author's own name (\textbf{Baly}, \textbf{Fady}), so
+% every "Antoun, Wissam, Fady Baly" runs a font switch at exactly the space that
+% biblatex inserts between two authors. That space is the `multinamedelim'
+% delimiter, whose stock definition is \addcomma\space, and it hit the same
+% pypdf inference failure as the bold labels in Skills: the extraction read
+% "Antoun, Wissam,Fady Baly" for all six entries.
+%
+% Redefining the delimiter to use \atsspace puts a real space glyph there. It is
+% done here rather than in resume/publications.tex, which is off limits, and it
+% is a delimiter definition, so it changes no bibliographic data - the rendered
+% author lists are character-for-character what they were.
+%-------------------------------------------------------------------------------
+\DeclareDelimFormat{multinamedelim}{\addcomma\atsspace}
+
+%-------------------------------------------------------------------------------
+% ATS TEXT EXTRACTION: keep keyword terms off the hyphenation list.
+%
+% A word broken across a line is stored in the PDF as two runs with a real
+% hyphen between them. poppler rejoins them, pypdf and pdfminer do not, so
+% "Arabic" broken as "Ara-bic" is invisible to a literal keyword match on
+% "Arabic" - and Arabic NLP is the whole specialism here. The Summary paragraph
+% is justified, so TeX will keep reaching for that break unless told not to.
+%
+% Listing a word in \hyphenation with no discretionary hyphens in it forbids
+% hyphenation of that word outright. Only letters are permitted, which is why
+% AraGPT2 and OAuth 2.0 are absent - digits cannot appear here, and neither term
+% has hyphenated in any build. Terms are listed in both cases where the document
+% uses both. Check for new hyphenation after any wording change:
+%   python3 -c "import re;from pypdf import PdfReader;print(re.findall(r'\S*\w-\n\w\S*','\n'.join(p.extract_text() for p in PdfReader('resume.pdf').pages)))"
+%-------------------------------------------------------------------------------
+\hyphenation{Arabic AraBERT AraELECTRA Elasticsearch PostgreSQL MySQL
+  PyTorch TensorFlow Kamkalima Yakshof Accrete Beirut Aleppo Neo Docker
+  Python Flutter Kubernetes Transformers pgvector NetworkX MADAMIRA Farasa
+  Hugging Face downloads citations monthly generation orchestration
+  alignment retrieval knowledge graphs networks production}
+
+%-------------------------------------------------------------------------------
+% THE TWO REMAINING UNDERFULL BOXES ARE KNOWN, DIAGNOSED AND DELIBERATELY LEFT.
+% Do not chase them, and do not paper over them with \hbadness.
+%
+% Both are empty boxes - the log prints "[]" for their contents - so neither can
+% overprint anything or shift a glyph; they cost nothing in the PDF. Both are
+% present in the pre-existing build at HEAD. The Overfull box that used to
+% accompany the first one is genuinely gone, patched out by the \makecvheader
+% fix above; these two are what is left.
+%
+%  1. "in paragraph at lines <\makecvheader line>" - awesome-cv.cls ends the
+%     header's text minipage with "} \\[\acvHeaderAfterSocialSkip]" and then,
+%     with \@quote undefined, adds nothing after it. The \\ forces a line break
+%     the paragraph never fills, which is the classic source of this warning.
+%     It is fixable with one more \patchcmd, swapping that \\[...] for
+%     \par\vspace{...}, and that was tried: it works and clears the warning, but
+%     it also deletes the empty line's \baselineskip and lifts every following
+%     section ~10pt up the page. That is a visual change to the header nobody
+%     asked for, in exchange for a warning about a box that contains nothing.
+%     Not worth it.
+%
+%  2. "in paragraph at lines 85--<end>" - the footer. \makecvfooter is called
+%     below with empty left and centre fields on purpose (see the comment
+%     there), and \fancyfoot[L]{\footerstyle{}} sets an empty paragraph. The
+%     only way to silence it is to put text back into the footer, which is the
+%     exact defect that was removed.
+%-------------------------------------------------------------------------------
+
+%-------------------------------------------------------------------------------
+% HEADER OVERFULL BOX: delete a stray interword space inside \makecvheader.
+%
+% awesome-cv.cls lays the header out as three side-by-side minipages -- photo,
+% text, photo -- and the source has a line break, and therefore a real interword
+% space, between the first \end{minipage} and the second \begin{minipage}. With
+% no \photo declared the two photo minipages are 0cm wide and the text minipage
+% is the full \textwidth, so the row measures \textwidth plus that one space and
+% TeX reports an Overfull \hbox, plus an Underfull one for the stray second line.
+%
+% The width reported was exactly 3.61351pt = 0.34em - 0.01em at 10.95pt: that is
+% the \spaceskip set above, shrunk as far as it will go. So the box is this one
+% space and nothing else. Widening or narrowing the social separator does not
+% touch it (tested: the figure stays at 3.61351pt to five decimals).
+%
+% Removing the space is the actual fix. It is done here with \patchcmd rather
+% than by editing awesome-cv.cls, which is off limits. \makecvheader takes an
+% optional argument, so the body lives in the control sequence literally named
+% "\makecvheader" and has to be reached through \csname\string...\endcsname.
+% The failure branch is a hard \PackageError on purpose: if a future version of
+% the class rewords this, the build must stop rather than quietly go back to
+% emitting an overfull header.
+%-------------------------------------------------------------------------------
+\makeatletter
+\expandafter\patchcmd\csname\string\makecvheader\endcsname
+  {\end{minipage} \begin{minipage}[c]{\headertextwidth}}
+  {\end{minipage}\begin{minipage}[c]{\headertextwidth}}
+  {}
+  {\PackageError{resume}{Could not patch the stray space out of
+    \string\makecvheader; the header will report an Overfull hbox}{}}
+\makeatother
+
+%-------------------------------------------------------------------------------
+%	PDF METADATA
+%	awesome-cv.cls loads hyperref and sets empty metadata fields; this extends
+%	that same \hypersetup so resume parsers and document properties see a real
+%	title, author and keyword list.
+%
+%	Every keyword is backed by the body text: each one appears in one of the
+%	included resume/*.tex files, matching case-insensitively, with two deliberate
+%	exceptions, both expansions of a form the body does use, not new claims:
+%	  - "Large Language Models" for the LLM / LLMs / LLM-built usages;
+%	  - "Weights and Biases" for "Weights \& Biases" in resume/skills.tex.
+%	Four entries are title-cased here but lowercase in the body - Knowledge
+%	Graphs, Question Answering, Named Entity Recognition, Sentiment Analysis.
+%	That is intended: a keyword list is conventionally title-cased and every
+%	parser folds case on these fields. Do not "fix" it by lowercasing them.
+%
+%	Re-check this list after cutting body text: a term whose only occurrence is
+%	deleted must be deleted here too. All 54 were re-checked against the current
+%	two-page build after Projects and the two 2019 talks were commented out.
+%	The check:
+%	  python3 - <<'EOF'
+%	  import re, subprocess
+%	  kw = subprocess.run(["pdfinfo","resume.pdf"],capture_output=True,text=True).stdout
+%	  terms = re.sub(r"\s+"," ",re.search(r"^Keywords:\s*(.*?)(?=^\w+:)",kw,re.S|re.M).group(1)).split(",")
+%	  body = re.sub(r"\s+"," ",subprocess.run(["pdftotext","resume.pdf","-"],capture_output=True,text=True).stdout).lower()
+%	  print([t for t in (t.strip() for t in terms) if t.lower() not in body])
+%	  EOF
+%-------------------------------------------------------------------------------
+\hypersetup{%
+  pdftitle={Fady Baly - Applied Scientist Resume},
+  pdfauthor={Fady Baly},
+  pdfsubject={Applied Scientist / Machine Learning Engineer - NLP and LLM systems},
+  pdfkeywords={Machine Learning, Deep Learning, Natural Language Understanding,
+    Large Language Models, OpenAI API, agent harness design, multi-agent
+    orchestration, Knowledge Graphs, context graphs, Graph Neural Networks,
+    entity alignment, Information Retrieval, Question Answering, semantic search,
+    vector search, pgvector, Python, PyTorch, TensorFlow, Keras, Hugging Face
+    Transformers, NVIDIA Triton Inference Server, MLflow, Weights and Biases,
+    Neo4j, NetworkX, Elasticsearch, NLTK, Stanford NLP toolkit, MADAMIRA, Farasa,
+    OCR, Speech-to-Text, Named Entity Recognition, Sentiment Analysis, Flask,
+    Dash, C\#, ASP.NET, Java, Spring Boot, Dart, Flutter, Spark, pandas, polars,
+    MySQL, PostgreSQL, Kafka, Redis, Docker, AWS, OAuth 2.0, Arabic NLP}
+}
 
 \begin{document}
 
@@ -142,9 +373,13 @@
 
 % Print the footer with 3 arguments(<left>, <center>, <right>)
 % Leave any of these blank if they are not needed
+% Left and centre fields are intentionally blank: the running date and
+% "Fady Baly · Résumé" were injected into the PDF text layer on every page,
+% landing mid-document in the extraction order and splitting section headings
+% from their content. Only the page number is kept.
 \makecvfooter
-  {\today}
-  {Fady Baly~~~·~~~Résumé}
+  {}
+  {}
   {\thepage}
 
 
@@ -152,13 +387,25 @@
 %	CV/RESUME CONTENT
 %	Each section is imported separately, open each file in turn to modify content
 %-------------------------------------------------------------------------------
+% Order is deliberate, not the template default:
+%   - Skills sits right after the summary so the hard-match keyword tokens
+%     (Python, PyTorch, PostgreSQL, ...) appear near the top of page 1 instead of ~80%
+%     of the way down, where keyword-position scoring discounts them.
+%   - Publications follows Experience because it is the headline credential
+%     here; behind Education it fell to page 2.
 \input{resume/summary.tex}
-\input{resume/experience.tex}
-\input{resume/education.tex}
-\input{resume/publications.tex}
-\input{resume/honors.tex}
-\input{resume/projects.tex}
 \input{resume/skills.tex}
+\input{resume/experience.tex}
+\input{resume/publications.tex}
+\input{resume/education.tex}
+\input{resume/honors.tex}
+% Projects intentionally not included: both entries (mHealth Dermatology,
+% Sept. 2020; De-Blurring Images using cDCGAN, Feb. 2018) predate the industry
+% record above and are the weakest evidence in the document next to six
+% peer-reviewed papers and 2,710 citations. Dropping the section is what brings
+% the resume back to two pages. resume/projects.tex itself is left in place and
+% still compiles, so restoring the section is a one-line change.
+% \input{resume/projects.tex}
 \input{resume/extracurricular.tex}
 
 
